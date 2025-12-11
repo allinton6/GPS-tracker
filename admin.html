@@ -2,60 +2,110 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>CAG GPS Tracker – Admin Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Live Dashboard</title>
   <link rel="stylesheet" href="css/style.css" />
 
-  <!-- Leaflet CSS + JS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-  <script src="js/firebaseConfig.js"></script>
-  <script defer src="js/adminDashboard.js"></script>
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
-<body class="kiosk-body">
-  <header class="header">
-    <div class="logo-box">CAG</div>
-    <div>
-      <div class="header-title">Runway GPS Tracker</div>
-      <div class="header-sub">Admin Live Dashboard</div>
-    </div>
+
+<body>
+  <header>
+    <h2>CAG</h2>
+    <h3>Runway GPS Tracker • Admin Dashboard</h3>
   </header>
 
-  <main class="main admin-layout">
-    <section class="card admin-controls">
+  <main>
+    <section class="card">
       <h2>Session Control</h2>
-      <div class="form-group">
-        <label for="sessionInput">Session ID</label>
-        <input
-          id="sessionInput"
-          type="text"
-          placeholder="Paste the Session ID from the QR generator"
-        />
-      </div>
-      <button id="loadSessionBtn" class="btn primary-btn full">Load Session</button>
-      <p id="adminStatus" class="status-text">No session loaded.</p>
+      <p>Enter the Session ID to load all users and begin live tracking.</p>
 
-      <h3>Tracked Users</h3>
-      <ul id="userList" class="user-list"></ul>
+      <input type="text" id="sessionInput" placeholder="Paste Session ID here" />
+      <button id="loadSessionBtn">Load Session</button>
+
+      <p id="sessionStatus">No session loaded.</p>
     </section>
 
-    <section class="card admin-map-card">
+    <section class="card">
+      <h2>Tracked Users</h2>
+      <ul id="userList"></ul>
+    </section>
+
+    <section class="card">
       <h2>Live Map</h2>
-      <div id="map" class="map-container"></div>
+      <div id="map" style="height: 500px; border-radius: 12px;"></div>
     </section>
   </main>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- FIREBASE + REALTIME DATABASE -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+    import { getDatabase, ref, onValue }
+      from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAzFIGKh1HzjLrPaXKg_zyeo5lIJMRPKBI",
+      authDomain: "gps-tracker-884b5.firebaseapp.com",
+      databaseURL: "https://gps-tracker-884b5-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "gps-tracker-884b5",
+      storageBucket: "gps-tracker-884b5.firebasestorage.app",
+      messagingSenderId: "288475098762",
+      appId: "1:288475098762:web:ffe7527df8d7c35365c773"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // ===== MAP INITIALIZATION =====
+    const map = L.map('map').setView([1.36, 103.99], 15); // Singapore center
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19
+    }).addTo(map);
+
+    const markers = {};
+
+    // ===== LOAD SESSION =====
+    document.getElementById("loadSessionBtn").addEventListener("click", () => {
+      const sessionId = document.getElementById("sessionInput").value.trim();
+      if (!sessionId) return alert("Please enter a session ID.");
+
+      document.getElementById("sessionStatus").textContent =
+        "Loading session: " + sessionId;
+
+      const path = `sessions/${sessionId}/users`;
+
+      onValue(ref(db, path), (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        const userList = document.getElementById("userList");
+        userList.innerHTML = "";
+
+        Object.keys(data).forEach((username) => {
+          const user = data[username];
+
+          // Update user list
+          const li = document.createElement("li");
+          li.textContent = username + " • last update: " + (user.timestamp || "-");
+          userList.appendChild(li);
+
+          // Update marker
+          if (user.lat && user.lng) {
+            if (!markers[username]) {
+              markers[username] = L.marker([user.lat, user.lng]).addTo(map);
+            } else {
+              markers[username].setLatLng([user.lat, user.lng]);
+            }
+          }
+        });
+      });
+    });
+  </script>
+
 </body>
 </html>

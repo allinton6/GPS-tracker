@@ -2,63 +2,158 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>CAG GPS Tracker – Join Session</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Join GPS Tracking Session</title>
   <link rel="stylesheet" href="css/style.css" />
-  <!-- Firebase compat SDKs (v9 compat) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-  <script src="js/firebaseConfig.js"></script>
-  <script defer src="js/userTracking.js"></script>
 </head>
-<body class="kiosk-body">
-  <header class="header">
-    <div class="logo-box">CAG</div>
-    <div>
-      <div class="header-title">Runway GPS Tracker</div>
-      <div class="header-sub">Join Tracking Session</div>
-    </div>
+
+<body>
+  <header>
+    <h2>CAG</h2>
+    <h3>Runway GPS Tracker • Join Session</h3>
   </header>
 
-  <main class="main">
+  <main>
     <section class="card">
       <h2>Session Details</h2>
-      <p class="muted">
-        Confirm that you are joining the correct runway operation session.
-      </p>
-      <div class="session-info">
-        <div>
-          <label>Session ID:</label>
-          <div id="sessionIdDisplay" class="mono-box">Loading...</div>
-        </div>
-      </div>
-      <p id="sessionWarning" class="warning-text hidden">
-        No session ID found in the link. Please scan a valid QR code.
+      <p>You are joining a live GPS tracking session.</p>
+
+      <p><strong>Session ID:</strong> <span id="sessionIdDisplay">loading...</span></p>
+      <p id="sessionWarning" style="color:red; display:none;">
+        Invalid session. Please scan a valid QR code.
       </p>
     </section>
 
     <section class="card">
       <h2>Your Details</h2>
-      <div class="form-group">
-        <label for="nameInput">Name</label>
-        <input id="nameInput" type="text" placeholder="Enter your full name" />
-      </div>
-      <div class="form-group">
-        <label for="phoneInput">Phone Number</label>
-        <input id="phoneInput" type="tel" placeholder="e.g. 9123 4567" />
-      </div>
-      <div class="form-group">
-        <label for="roleInput">Role / Vehicle (optional)</label>
-        <input id="roleInput" type="text" placeholder="e.g. Runway Marshall, Follow-Me Vehicle" />
-      </div>
+      <label>Name</label>
+      <input type="text" id="nameInput" placeholder="Enter your name" />
 
-      <button id="startBtn" class="btn primary-btn full">Start GPS Tracking</button>
-      <button id="stopBtn" class="btn danger-btn full" disabled>Stop Tracking & Exit</button>
+      <label>Phone Number</label>
+      <input type="text" id="phoneInput" placeholder="Enter phone number" />
 
-      <p id="statusText" class="status-text">
-        Please fill in your details and tap “Start GPS Tracking”.
-      </p>
+      <button id="startBtn">Start GPS Tracking</button>
+      <button id="stopBtn" disabled>Stop Tracking</button>
+
+      <p id="statusText">Please enter your details.</p>
     </section>
   </main>
+
+  <!-- FIREBASE + REALTIME DB -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+    import { getDatabase, ref, set, update }
+      from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAzFIGKh1HzjLrPaXKg_zyeo5lIJMRPKBI",
+      authDomain: "gps-tracker-884b5.firebaseapp.com",
+      databaseURL: "https://gps-tracker-884b5-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "gps-tracker-884b5",
+      storageBucket: "gps-tracker-884b5.firebasestorage.app",
+      messagingSenderId: "288475098762",
+      appId: "1:288475098762:web:ffe7527df8d7c35365c773"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let watchId = null;
+    let sessionId = null;
+    let username = null;
+
+    // Read session ID from URL
+    const params = new URLSearchParams(window.location.search);
+    sessionId = params.get("session");
+
+    const sessionDisplay = document.getElementById("sessionIdDisplay");
+    const warning = document.getElementById("sessionWarning");
+
+    if (!sessionId) {
+      sessionDisplay.textContent = "-";
+      warning.style.display = "block";
+      document.getElementById("startBtn").disabled = true;
+    } else {
+      sessionDisplay.textContent = sessionId;
+    }
+
+    const setStatus = (msg) => {
+      document.getElementById("statusText").textContent = msg;
+    };
+
+    document.getElementById("startBtn").addEventListener("click", () => {
+      const name = document.getElementById("nameInput").value.trim();
+      const phone = document.getElementById("phoneInput").value.trim();
+
+      if (!name || !phone) return alert("Please enter your name and phone number.");
+
+      username = name.replace(/\s+/g, "_") + "_" + Date.now();
+
+      // Initial user record in Firebase
+      set(ref(db, `sessions/${sessionId}/users/${username}`), {
+        name,
+        phone,
+        active: true,
+        timestamp: Date.now(),
+      });
+
+      setStatus("Requesting GPS permission...");
+      document.getElementById("startBtn").disabled = true;
+      document.getElementById("stopBtn").disabled = false;
+
+      if (!navigator.geolocation) {
+        alert("Geolocation not supported.");
+        return;
+      }
+
+      // Start GPS tracking
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          const { latitude, longitude, accuracy } = pos.coords;
+
+          update(ref(db, `sessions/${sessionId}/users/${username}`), {
+            lat: latitude,
+            lng: longitude,
+            accuracy: accuracy,
+            timestamp: Date.now(),
+            active: true,
+          });
+
+          setStatus(`Tracking... LAT: ${latitude.toFixed(5)}, LNG: ${longitude.toFixed(5)}`);
+        },
+        (err) => {
+          setStatus("GPS error: " + err.message);
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 0,
+          timeout: 15000,
+        }
+      );
+    });
+
+    document.getElementById("stopBtn").addEventListener("click", () => {
+      setStatus("Stopping tracking...");
+
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+
+      // Mark user inactive
+      if (sessionId && username) {
+        update(ref(db, `sessions/${sessionId}/users/${username}`), {
+          active: false,
+        });
+      }
+
+      document.getElementById("stopBtn").disabled = true;
+
+      // Kick user out after 2 seconds
+      setTimeout(() => {
+        window.location.href = "about:blank";
+      }, 2000);
+    });
+  </script>
+
 </body>
 </html>
