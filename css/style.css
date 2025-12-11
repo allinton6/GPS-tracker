@@ -1,0 +1,277 @@
+/* GENERAL --------------------------------------------------- */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  background: #f5f7f6;
+  color: #111;
+}
+
+/* HEADER ---------------------------------------------------- */
+
+.header {
+  display: flex;
+  align-items: center;
+  padding: 16px 24px;
+  background: #146c3d; /* CAG dark green bar */
+  color: #fff;
+}
+
+.logo-box {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  background: #1db954; /* bright green */
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 22px;
+  margin-right: 16px;
+}
+
+.header-title {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.header-sub {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+/* LAYOUT ---------------------------------------------------- */
+
+.kiosk-body {
+  min-height: 100vh;
+}
+
+.main {
+  max-width: 1100px;
+  margin: 24px auto;
+  padding: 0 16px 32px;
+  display: grid;
+  gap: 20px;
+}
+
+/* Cards */
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px 18px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+.card h2 {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.card h3 {
+  font-size: 16px;
+  margin: 16px 0 8px;
+}
+
+.muted {
+  font-size: 14px;
+  color: #555;
+}
+
+/* Buttons --------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.05s ease, box-shadow 0.1s ease, background 0.1s ease;
+}
+
+.btn:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.primary-btn {
+  background: #1db954;
+  color: #000;
+  box-shadow: 0 4px 10px rgba(19, 173, 86, 0.35);
+}
+
+.primary-btn:hover {
+  background: #18a348;
+}
+
+.outline-btn {
+  background: #ffffff;
+  color: #146c3d;
+  border: 1px solid #146c3d;
+}
+
+.danger-btn {
+  background: #e53935;
+  color: #fff;
+}
+
+.full {
+  width: 100%;
+  margin-top: 8px;
+}
+
+/* Session info ----------------------------------------------- */
+
+.session-info {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.session-info label {
+  font-size: 13px;
+  color: #666;
+}
+
+.mono-box {
+  font-family: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 13px;
+  padding: 7px 9px;
+  background: #f2f5f4;
+  border-radius: 8px;
+  word-break: break-all;
+}
+
+.mono-box.small-text {
+  font-size: 12px;
+}
+
+/* QR -------------------------------------------------------- */
+
+.qr-section {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.qr-box {
+  margin: 10px auto 0;
+  padding: 10px;
+  border-radius: 12px;
+  background: #f2f5f4;
+  display: inline-block;
+}
+
+/* Forms ----------------------------------------------------- */
+
+.form-group {
+  margin: 10px 0;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #cfd6d3;
+  font-size: 14px;
+}
+
+/* Status / errors ------------------------------------------- */
+
+.status-text {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #444;
+}
+
+.warning-text {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #d32f2f;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Admin layout ---------------------------------------------- */
+
+.admin-layout {
+  grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+  align-items: flex-start;
+}
+
+.admin-controls {
+  position: sticky;
+  top: 16px;
+}
+
+.admin-map-card {
+  height: 520px;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-container {
+  flex: 1;
+  min-height: 360px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* User list */
+
+.user-list {
+  list-style: none;
+  margin-top: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+  border-radius: 10px;
+  border: 1px solid #e0e5e2;
+}
+
+.user-list li {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e0e5e2;
+  font-size: 13px;
+}
+
+.user-list li:last-child {
+  border-bottom: none;
+}
+
+/* Leaflet override ------------------------------------------ */
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* Responsive ------------------------------------------------ */
+
+@media (max-width: 800px) {
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-controls {
+    position: static;
+  }
+}

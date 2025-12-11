@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CAG GPS Tracker – Session QR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- QRCode.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body class="kiosk-body">
+  <header class="header">
+    <div class="logo-box">CAG</div>
+    <div>
+      <div class="header-title">Runway GPS Tracker</div>
+      <div class="header-sub">Changi Airport Group · Prototype System</div>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="card">
+      <h2>Create New Tracking Session</h2>
+      <p class="muted">
+        Click the button to generate a unique session ID and QR code.  
+        Personnel scan the QR to register and start GPS tracking.
+      </p>
+
+      <button id="generateSessionBtn" class="btn primary-btn">Generate New Session</button>
+
+      <div class="session-info">
+        <div>
+          <label>Session ID:</label>
+          <div id="sessionIdDisplay" class="mono-box">—</div>
+        </div>
+        <div>
+          <label>Join URL:</label>
+          <div id="joinUrlDisplay" class="mono-box small-text">—</div>
+        </div>
+      </div>
+
+      <div class="qr-section">
+        <h3>Scan to Join Session</h3>
+        <div id="qrcode" class="qr-box"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Admin Dashboard</h2>
+      <p class="muted">
+        Use the live map to monitor all tracked personnel and vehicles.
+      </p>
+      <a href="admin.html" class="btn outline-btn">Open Admin Dashboard</a>
+    </section>
+  </main>
+
+  <script>
+    const generateBtn = document.getElementById("generateSessionBtn");
+    const sessionIdDisplay = document.getElementById("sessionIdDisplay");
+    const joinUrlDisplay = document.getElementById("joinUrlDisplay");
+    const qrContainer = document.getElementById("qrcode");
+
+    let qrInstance = null;
+
+    function createSessionId() {
+      const now = Date.now().toString(36);
+      const random = Math.random().toString(36).substring(2, 8);
+      return `sess-${now}-${random}`;
+    }
+
+    function buildJoinUrl(sessionId) {
+      // This makes it work nicely on GitHub Pages too
+      const origin = window.location.origin;
+      // Remove "index.html" if present
+      const path = window.location.pathname.replace("index.html", "");
+      return `${origin}${path}track.html?session=${encodeURIComponent(sessionId)}`;
+    }
+
+    generateBtn.addEventListener("click", () => {
+      const sessionId = createSessionId();
+      const joinUrl = buildJoinUrl(sessionId);
+
+      sessionIdDisplay.textContent = sessionId;
+      joinUrlDisplay.textContent = joinUrl;
+
+      // Clear old QR
+      qrContainer.innerHTML = "";
+
+      qrInstance = new QRCode(qrContainer, {
+        text: joinUrl,
+        width: 200,
+        height: 200,
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    });
+  </script>
+</body>
+</html>
